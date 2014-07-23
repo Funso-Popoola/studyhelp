@@ -190,7 +190,8 @@
 
 		function update($tableName, $fields, $updates, $conditions = 1){
             /*
-             *
+             * Updates a particular given table;
+             * updates apply to specified fields that satisfies the given condition(s)
              */
             $query = "UPDATE "."`".$tableName."` SET ";
 
@@ -198,6 +199,8 @@
             if(is_array($fields) and is_array($updates) and (count($fields) == count($updates))){
                 $length = count($fields);
                 for($i = 0; $i < $length; $i++){
+                    if(is_string($updates[$i]))
+                        $updates[$i] = "'".$updates[$i]."'";
                     $query .= "`".$fields[$i]."`=".$updates[$i];
                     if($i != $length - 1){
                         $query .= ", ";
@@ -212,6 +215,8 @@
             //include the conditions
             $query .= " WHERE ".$conditions;
 
+            echo($query);
+
             $updateRes = mysqli_query($this->link, $query);
             if(!$updateRes){
                 $errMsg = "Update unsuccessful";
@@ -221,15 +226,68 @@
 
 		}
 
-		function createTable($newTableName, $specs, $primaryKey){
+		function createTable($newTableName, $fields, $fieldTypes, $primaryKeyFields = null){
             /*
+             * Creates a table with the given tableName, fields specification and makes assigns primary key.
              *
              */
+            $query = "CREATE TABLE ".$newTableName." (";
+
+            // include the specification which is each table alongside it's description
+
+            if(is_array($fields) and is_array($fieldTypes)){
+                //just double-checking before this operation to ensure the expected types are just right
+
+                $length = count($fields);
+                if(count($fields) == count($fieldTypes)){
+
+                    for($j = 0; $j < $length; $j++){
+                        $query .= "`".$fields[$j]."` ".$fieldTypes[$j];
+                        if($j != $length - 1 or !is_null($primaryKeyFields)){
+                            $query .= ", ";
+                        }
+
+                    }
+
+
+                    if(!is_null($primaryKeyFields)){
+                        $query .= " PRIMARY KEY ( ";
+
+                        if(is_array($primaryKeyFields)){
+                            $length = count($primaryKeyFields);
+
+                            for($k = 0; $k < $length; $k++){
+                                $query .= "`".$primaryKeyFields[$j]."`";
+                                if($k != $length - 1){
+                                    $query .= ", ";
+                                }
+                            }
+                        }
+                        else{
+                            $query .= "`".$primaryKeyFields."`";
+
+                        }
+                        $query .= " )";
+                    }
+                    $query .= " )";
+
+                    //testing...
+                    //echo($query);
+
+                    //do the query
+                    $creationRes = mysqli_query($this->link, $query);
+                    if(!$creationRes){
+                        $errMsg = " Table creation unsuccessful";
+                        die(mysql_error().$errMsg);
+                    }
+                    return $creationRes;
+                }
+            }
 		}
 
         function alterTable(){
             /*
-             *
+             * Way coming...
              */
         }
 
